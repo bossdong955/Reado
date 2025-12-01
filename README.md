@@ -67,7 +67,7 @@ Reado 采用致敬 Apple 的极简主义设计语言（Jobs Minimalist Theme）�
 
 - **核心标准**：Manifest V3
 - **架构模式**：Event-driven Service Worker
-- **数据存储**：`chrome.storage.sync`（跨设备同步）
+- **数据存储**：`chrome.storage.sync`
 - **通知系统**：`chrome.alarms` + `chrome.notifications`
 - **状态监听**：`chrome.tabs.onUpdated`（实现自动已读功能）
 - **UI 框架**：原生 HTML/CSS/JS，零依赖，追求极致性能与原生体验

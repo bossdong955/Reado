@@ -52,8 +52,8 @@ Reado 采用致敬 Apple 的极简主义设计语言（Jobs Minimalist Theme）�
 
 ### 开发者模式安装
 1. 下载本项目源码到本地。
-2. 打开 Chrome 浏览器，访问 `chrome://extensions`。
-3. 开启右上角的 **"开发者模式" (Developer mode)**。
+2. Chrome 浏览器，访问 `chrome://extensions`，Edge 浏览器访问`edge://extensions/`。
+3. 开启 **"开发者模式" (Developer mode)**。
 4. 点击 **"加载已解压的扩展程序" (Load unpacked)**。
 5. 选择本项目文件夹即可。
 

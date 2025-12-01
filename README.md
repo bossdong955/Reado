@@ -12,6 +12,8 @@
 
 ![image-20251201131600414](images.assets/image-20251201131600414.png)
 
+![image-20251201132502840](images.assets/image-20251201132502840.png)
+
 ## 2. 核心功能
 
 ### ⚡ 一键闪存 (Instant Capture)

@@ -1,6 +1,6 @@
 # Reado - 重塑你的数字阅读流
 
-> "Focus is about saying no." ——让 Reado 帮你对干扰说"不"，对深度阅读说"是"。
+> "Focus is about saying no." ——让 Reado 帮你对干扰说"No"，对深度阅读说"Yes"。
 
 ## 1. 产品简介
 

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reado</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      width: 340px;
+      padding: 20px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .header img {
+      width: 28px;
+      height: 28px;
+      margin-right: 12px;
+    }
+
+    .header h1 {
+      font-size: 20px;
+      margin: 0;
+      color: var(--text-primary);
+    }
+
+    .page-info {
+      margin-bottom: 20px;
+    }
+
+    .page-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .page-url {
+      font-size: 12px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .section-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .reminder-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .reminder-btn {
+      padding: 10px;
+      font-size: 13px;
+      text-align: center;
+      background-color: var(--surface-color);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: var(--transition);
+      border: 1px solid transparent;
+    }
+
+    .reminder-btn:hover {
+      background-color: #E5E5EA;
+    }
+
+    .reminder-btn.active {
+      background-color: var(--primary-color);
+      color: white;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .actions button {
+      flex: 1;
+    }
+
+    .dashboard-link {
+      margin-top: 16px;
+      text-align: center;
+      font-size: 13px;
+    }
+
+    .dashboard-link a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .dashboard-link a:hover {
+      color: var(--primary-color);
+    }
+
+    #custom-time-container {
+      margin-bottom: 20px;
+    }
+
+    .tags-container {
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <img src="assets/icon_jobs.svg" alt="Reado Logo">
+    <h1>Reado</h1>
+  </div>
+
+  <div class="page-info">
+    <div class="page-title" id="page-title">加载中...</div>
+    <div class="page-url" id="page-url">...</div>
+  </div>
+
+  <div class="section-label">提醒时间</div>
+  <div class="reminder-options">
+    <div class="reminder-btn" data-time="later">稍后 (1小时)</div>
+    <div class="reminder-btn" data-time="tonight">今晚 (8点)</div>
+    <div class="reminder-btn" data-time="tomorrow">明早 (9点)</div>
+    <div class="reminder-btn" data-time="custom">自定义</div>
+  </div>
+
+  <div id="custom-time-container" class="hidden">
+    <input type="datetime-local" id="custom-time">
+  </div>
+
+  <div class="tags-container">
+    <div class="section-label">标签 (可选)</div>
+    <input type="text" id="tags-input" placeholder="例如: 工作, 学习 (用逗号分隔)">
+  </div>
+
+  <div class="actions">
+    <button id="save-btn" class="primary">保存页面</button>
+  </div>
+
+  <div class="dashboard-link">
+    <a href="#" id="open-dashboard">管理已保存的页面</a>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "Reado - Read Later & Reminders",
+  "version": "1.0.0",
+  "description": "Reado 让你可以对当下的干扰说“不”，从而对未来的深度阅读说“是”。",
+  "permissions": [
+    "storage",
+    "alarms",
+    "notifications",
+    "tabs",
+    "activeTab",
+    "contextMenus",
+    "favicon"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Reado",
+    "default_icon": {
+      "16": "assets/icon16.png",
+      "48": "assets/icon48.png",
+      "128": "assets/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "icons": {
+    "16": "assets/icon16.png",
+    "48": "assets/icon48.png",
+    "128": "assets/icon128.png"
+  }
+}

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reado 管理面板</title>
+    <link rel="icon" type="image/svg+xml" href="assets/icon_jobs.svg">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            background-color: var(--surface-color);
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .header img {
+            width: 48px;
+            height: 48px;
+            margin-right: 16px;
+        }
+
+        .header-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-secondary);
+            border-bottom: 2px solid transparent;
+            transition: var(--transition);
+        }
+
+        .tab:hover {
+            color: var(--text-primary);
+        }
+
+        .tab.active {
+            color: var(--accent-color);
+            border-bottom-color: var(--accent-color);
+        }
+
+        .item-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .item-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            transition: var(--transition);
+        }
+
+        .item-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transform: translateY(-1px);
+        }
+
+        .item-info {
+            flex: 1;
+            margin-right: 24px;
+        }
+
+        .item-title {
+            font-weight: 600;
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+            text-decoration: none;
+            display: block;
+        }
+
+        .item-title:hover {
+            color: var(--accent-color);
+        }
+
+        .item-meta {
+            font-size: 13px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 13px;
+            border-radius: 6px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: var(--text-secondary);
+            font-size: 16px;
+        }
+
+        .tag-pill {
+            background-color: #E5E5EA;
+            color: var(--text-secondary);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="assets/icon_jobs.svg" alt="Reado Logo">
+            <div class="header-text">
+                <h1>Reado 管理面板</h1>
+                <p class="philosophy">"Focus is about saying no." —— Reado 让你可以对当下的干扰说"不"，从而对未来的深度阅读说"是"。</p>
+                <a href="https://github.com/bossdong955/Reado" target="_blank" class="github-link">View on GitHub</a>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" data-tab="unread">未读列表</div>
+            <div class="tab" data-tab="read">已读归档</div>
+        </div>
+
+        <div class="search-container">
+            <input type="text" id="tag-search" placeholder="按标签搜索... (例如: 工作, 学习)">
+            <button id="clear-search" class="btn-icon" title="清除搜索">✕</button>
+        </div>
+
+        <div id="item-list" class="item-list">
+            <!-- Items will be injected here -->
+        </div>
+    </div>
+
+    <script src="dashboard.js"></script>
+</body>
+
+</html>

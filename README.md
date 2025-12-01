@@ -1,6 +1,6 @@
 # Reado - 重塑你的数字阅读流
 
-> "Focus is about saying no." —— Reado 让你可以对当下的干扰说"不"，从而对未来的深度阅读说"是"。
+> "Focus is about saying no." ——让 Reado 帮你对干扰说"不"，对深度阅读说"是"。
 
 ## 1. 产品简介
 
@@ -148,3 +148,4 @@ MIT License
 ---
 
 **"Focus is about saying no."** —— 让 Reado 帮你对干扰说"不"，对深度阅读说"是"。
+

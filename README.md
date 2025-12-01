@@ -6,11 +6,11 @@
 
 **Reado** 是一款基于 Chrome/Edge 平台的极简主义阅读管理扩展。它旨在解决现代数字生活中"保存后遗忘"的顽疾。不同于传统的书签（Bookmarks）或复杂的稍后阅读（Read-it-later）服务，Reado 专注于**"闭环"**——不仅帮你保存，更通过智能提醒和自动状态管理，确保你真正完成了知识的摄取。
 
-![image-20251201131714412](images.assets\image-20251201131714412.png)
+![image-20251201131714412](images.assets/image-20251201131714412.png)
 
-![image-20251201131550973](images.assets\image-20251201131550973.png)
+![image-20251201131550973](images.assets/image-20251201131550973.png)
 
-![image-20251201131600414](images.assets\image-20251201131600414.png)
+![image-20251201131600414](images.assets/image-20251201131600414.png)
 
 ## 2. 核心功能
 

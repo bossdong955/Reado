@@ -117,6 +117,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const customVal = customTimeInput.value;
             if (customVal) {
                 reminderTime = new Date(customVal).getTime();
+            } else {
+                // Fallback to 1 hour if custom time not provided
+                const now = new Date();
+                reminderTime = now.getTime() + 60 * 60 * 1000;
+                console.warn('⚠️ Custom time not provided, using default 1 hour');
             }
         }
 
@@ -141,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 console.error('⚠️ Alarm not found after creation!');
                             }
                         });
-                    }, 100); // 100ms delay
+                    }, 200); // 100ms delay
                 }
             });
         }

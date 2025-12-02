@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Check if item is overdue
     function isOverdue(item) {
-        return item.reminder && item.reminder < Date.now() && !item.read && !item.permanentlyIgnored;
+        return item.reminder && item.reminder < Date.now() && !item.read;
     }
 
     // Render items
@@ -102,11 +102,6 @@ document.addEventListener('DOMContentLoaded', () => {
             // Add overdue class if applicable
             if (isOverdue(item)) {
                 card.classList.add('overdue');
-            }
-
-            // Add ignored class if permanently ignored
-            if (item.permanentlyIgnored) {
-                card.classList.add('ignored');
             }
 
             // Store URL for context menu
@@ -230,15 +225,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 deleteItem(url);
             });
         });
-
-        // Add context menu listeners
-        document.querySelectorAll('.item-card').forEach(card => {
-            card.addEventListener('contextmenu', (e) => {
-                e.preventDefault();
-                const url = card.dataset.url;
-                showContextMenu(e.pageX, e.pageY, url);
-            });
-        });
     }
 
     function markAsRead(url) {
@@ -265,69 +251,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 loadItems();
             });
         }
-    }
-
-    // Context menu functionality
-    let contextMenu = null;
-
-    function showContextMenu(x, y, url) {
-        // Remove existing menu
-        if (contextMenu) {
-            contextMenu.remove();
-        }
-
-        // Create menu
-        contextMenu = document.createElement('div');
-        contextMenu.className = 'context-menu';
-        contextMenu.style.left = x + 'px';
-        contextMenu.style.top = y + 'px';
-
-        contextMenu.innerHTML = `
-            <div class="context-menu-item" data-action="ignore" data-url="${url}">
-                ⏭️ 永久忽略此项
-            </div>
-        `;
-
-        document.body.appendChild(contextMenu);
-
-        // Handle menu item click
-        contextMenu.querySelector('[data-action="ignore"]').addEventListener('click', () => {
-            permanentlyIgnoreItem(url);
-            contextMenu.remove();
-            contextMenu = null;
-        });
-
-        // Close menu on outside click
-        setTimeout(() => {
-            document.addEventListener('click', closeContextMenu);
-        }, 0);
-    }
-
-    function closeContextMenu() {
-        if (contextMenu) {
-            contextMenu.remove();
-            contextMenu = null;
-        }
-        document.removeEventListener('click', closeContextMenu);
-    }
-
-    function permanentlyIgnoreItem(url) {
-        chrome.storage.sync.get([url], (result) => {
-            if (result[url]) {
-                const item = result[url];
-                item.permanentlyIgnored = true;
-
-                // Clear any existing alarms
-                chrome.alarms.clear(`reminder-${url}`);
-                item.reminder = null;
-                item.secondReminder = false;
-
-                chrome.storage.sync.set({ [url]: item }, () => {
-                    console.log('⏭️ Permanently ignored:', url);
-                    loadItems(); // Reload to update UI
-                });
-            }
-        });
     }
 
     // Initial load

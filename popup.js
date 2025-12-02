@@ -81,7 +81,6 @@ document.addEventListener('DOMContentLoaded', () => {
             reminder: null,
             tags: tags,
             secondReminder: false,
-            permanentlyIgnored: false,
             lastNotificationTime: null,
             originalReminder: null
         };

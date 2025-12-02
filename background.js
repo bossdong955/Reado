@@ -11,12 +11,6 @@ chrome.alarms.onAlarm.addListener((alarm) => {
         chrome.storage.sync.get(['settings', url], (result) => {
             const item = result[url];
             if (item) {
-                // Check if permanently ignored
-                if (item.permanentlyIgnored) {
-                    console.log('⏭️ Skipping notification for permanently ignored item:', item.title);
-                    return;
-                }
-
                 console.log('📬 Showing notification for:', item.title);
                 showNotification(url, item.title);
 
@@ -177,7 +171,6 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
             reminder: null,
             tags: [],
             reminderCount: 0,
-            permanentlyIgnored: false,
             lastNotificationTime: null,
             originalReminder: null
         };

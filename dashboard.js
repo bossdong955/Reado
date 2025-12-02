@@ -3,8 +3,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const tabs = document.querySelectorAll('.tab');
     const tagSearchInput = document.getElementById('tag-search');
     const clearSearchBtn = document.getElementById('clear-search');
-    let currentTab = 'unread';
+
+    // Restore last active tab from localStorage
+    let currentTab = localStorage.getItem('reado_active_tab') || 'unread';
     let searchTags = [];
+
+    // Set initial active tab
+    tabs.forEach(tab => {
+        if (tab.dataset.tab === currentTab) {
+            tab.classList.add('active');
+        } else {
+            tab.classList.remove('active');
+        }
+    });
 
     // Tab switching
     tabs.forEach(tab => {
@@ -12,6 +23,10 @@ document.addEventListener('DOMContentLoaded', () => {
             tabs.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
             currentTab = tab.dataset.tab;
+
+            // Save to localStorage
+            localStorage.setItem('reado_active_tab', currentTab);
+
             loadItems();
         });
     });
@@ -37,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Load items
     function loadItems() {
         chrome.storage.sync.get(null, (items) => {
-            const allItems = Object.values(items);
+            const allItems = Object.values(items).filter(item => item.url && item.title);
             let filteredItems = allItems.filter(item => {
                 if (currentTab === 'unread') return !item.read;
                 return item.read;
@@ -63,6 +78,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Check if item is overdue
+    function isOverdue(item) {
+        return item.reminder && item.reminder < Date.now() && !item.read && !item.permanentlyIgnored;
+    }
+
     // Render items
     function renderItems(items) {
         itemListEl.innerHTML = '';
@@ -79,8 +99,87 @@ document.addEventListener('DOMContentLoaded', () => {
             const card = document.createElement('div');
             card.className = 'item-card';
 
+            // Add overdue class if applicable
+            if (isOverdue(item)) {
+                card.classList.add('overdue');
+            }
+
+            // Store URL for context menu
+            card.dataset.url = item.url;
+
             const dateStr = new Date(item.savedAt).toLocaleDateString('zh-CN');
-            const reminderStr = item.reminder ? ` • 提醒: ${new Date(item.reminder).toLocaleString('zh-CN')}` : '';
+
+            // Build reminder display
+            let reminderStr = '';
+            if (item.reminder || item.originalReminder) {
+                let parts = [];
+
+                // Show current reminder time if exists
+                if (item.reminder) {
+                    const reminderTime = new Date(item.reminder).toLocaleString('zh-CN', { hour12: false });
+                    parts.push(`⏰ 提醒: ${reminderTime}`);
+                }
+
+                // Show original reminder if different from current
+                if (item.originalReminder && (!item.reminder || item.originalReminder !== item.reminder)) {
+                    const originalTime = new Date(item.originalReminder).toLocaleString('zh-CN', { hour12: false });
+
+                    // For read items without current reminder, show as main time
+                    if (!item.reminder && item.read) {
+                        parts.push(`⏰ 原定: ${originalTime}`);
+                    } else {
+                        // Otherwise show as supplementary info
+                        parts.push(`📅 原始: ${originalTime}`);
+                    }
+
+                    // Calculate and display delay for read items
+                    if (item.read) {
+                        // Show when it was actually read
+                        if (item.readAt) {
+                            const readTime = new Date(item.readAt).toLocaleString('zh-CN', { hour12: false });
+                            parts.push(`📖 已读: ${readTime}`);
+
+                            // Calculate delay
+                            const delayMs = item.readAt - item.originalReminder;
+                            if (delayMs > 0) {
+                                const hours = Math.floor(delayMs / (1000 * 60 * 60));
+                                const mins = Math.floor((delayMs % (1000 * 60 * 60)) / (1000 * 60));
+                                let delayText = '';
+                                if (hours > 0) delayText += `${hours}小时`;
+                                if (mins > 0) delayText += `${mins}分`;
+                                if (!delayText) delayText = '少许';
+
+                                parts.push(`⏱️ 延迟${delayText}`);
+                            } else if (delayMs < 0) {
+                                // Read before reminder time
+                                const earlyMs = Math.abs(delayMs);
+                                const hours = Math.floor(earlyMs / (1000 * 60 * 60));
+                                const mins = Math.floor((earlyMs % (1000 * 60 * 60)) / (1000 * 60));
+                                let earlyText = '';
+                                if (hours > 0) earlyText += `${hours}小时`;
+                                if (mins > 0) earlyText += `${mins}分`;
+                                if (!earlyText) earlyText = '少许';
+
+                                parts.push(`✅ 提前${earlyText}`);
+                            }
+                        }
+                    }
+                    // Calculate postponement for unread items
+                    else if (!item.read && item.reminder && item.originalReminder < item.reminder) {
+                        const delayMs = item.reminder - item.originalReminder;
+                        const hours = Math.floor(delayMs / (1000 * 60 * 60));
+                        const mins = Math.floor((delayMs % (1000 * 60 * 60)) / (1000 * 60));
+                        let delayText = '';
+                        if (hours > 0) delayText += `${hours}小时`;
+                        if (mins > 0) delayText += `${mins}分`;
+                        if (!delayText) delayText = '少许';
+
+                        parts.push(`⏳ 延期${delayText}`);
+                    }
+                }
+
+                reminderStr = parts.length > 0 ? ' • ' + parts.join(' • ') : '';
+            }
 
             let tagsHtml = '';
             if (item.tags && item.tags.length > 0) {
@@ -126,6 +225,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 deleteItem(url);
             });
         });
+
+        // Add context menu listeners
+        document.querySelectorAll('.item-card').forEach(card => {
+            card.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                const url = card.dataset.url;
+                showContextMenu(e.pageX, e.pageY, url);
+            });
+        });
     }
 
     function markAsRead(url) {
@@ -133,6 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (result[url]) {
                 const item = result[url];
                 item.read = true;
+                item.readAt = Date.now(); // Track when marked as read
                 // Clear alarm if exists
                 chrome.alarms.clear(`reminder-${url}`);
                 item.reminder = null;
@@ -151,6 +260,69 @@ document.addEventListener('DOMContentLoaded', () => {
                 loadItems();
             });
         }
+    }
+
+    // Context menu functionality
+    let contextMenu = null;
+
+    function showContextMenu(x, y, url) {
+        // Remove existing menu
+        if (contextMenu) {
+            contextMenu.remove();
+        }
+
+        // Create menu
+        contextMenu = document.createElement('div');
+        contextMenu.className = 'context-menu';
+        contextMenu.style.left = x + 'px';
+        contextMenu.style.top = y + 'px';
+
+        contextMenu.innerHTML = `
+            <div class="context-menu-item" data-action="ignore" data-url="${url}">
+                ⏭️ 永久忽略此项
+            </div>
+        `;
+
+        document.body.appendChild(contextMenu);
+
+        // Handle menu item click
+        contextMenu.querySelector('[data-action="ignore"]').addEventListener('click', () => {
+            permanentlyIgnoreItem(url);
+            contextMenu.remove();
+            contextMenu = null;
+        });
+
+        // Close menu on outside click
+        setTimeout(() => {
+            document.addEventListener('click', closeContextMenu);
+        }, 0);
+    }
+
+    function closeContextMenu() {
+        if (contextMenu) {
+            contextMenu.remove();
+            contextMenu = null;
+        }
+        document.removeEventListener('click', closeContextMenu);
+    }
+
+    function permanentlyIgnoreItem(url) {
+        chrome.storage.sync.get([url], (result) => {
+            if (result[url]) {
+                const item = result[url];
+                item.permanentlyIgnored = true;
+
+                // Clear any existing alarms
+                chrome.alarms.clear(`reminder-${url}`);
+                item.reminder = null;
+                item.secondReminder = false;
+
+                chrome.storage.sync.set({ [url]: item }, () => {
+                    console.log('⏭️ Permanently ignored:', url);
+                    loadItems(); // Reload to update UI
+                });
+            }
+        });
     }
 
     // Initial load

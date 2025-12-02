@@ -123,6 +123,45 @@
     .tags-container {
       margin-bottom: 20px;
     }
+
+    .settings-container {
+      margin-bottom: 20px;
+      padding: 12px;
+      background-color: var(--surface-color);
+      border-radius: 8px;
+    }
+
+    .setting-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+    }
+
+    .setting-item label {
+      font-size: 13px;
+      color: var(--text-primary);
+    }
+
+    .setting-item select {
+      padding: 6px 10px;
+      font-size: 13px;
+      border: 1px solid #D1D1D6;
+      border-radius: 6px;
+      background-color: white;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .setting-item select:hover {
+      border-color: var(--primary-color);
+    }
+
+    .setting-item select:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+    }
   </style>
 </head>
 
@@ -147,6 +186,19 @@
 
   <div id="custom-time-container" class="hidden">
     <input type="datetime-local" id="custom-time">
+  </div>
+
+  <div class="settings-container">
+    <div class="section-label">设置 ⚙️</div>
+    <div class="setting-item">
+      <label for="second-reminder-interval">重复提醒间隔:</label>
+      <select id="second-reminder-interval">
+        <option value="30">30 分钟</option>
+        <option value="60" selected>1 小时</option>
+        <option value="120">2 小时</option>
+        <option value="240">4 小时</option>
+      </select>
+    </div>
   </div>
 
   <div class="tags-container">

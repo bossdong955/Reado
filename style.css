@@ -618,6 +618,201 @@ input:focus {
   justify-content: center;
   padding: 0;
   font-size: 14px;
+}
+
+.item-card:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+}
+
+.card-icon {
+  margin-bottom: 12px;
+}
+
+.card-icon img {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+}
+
+.item-info {
+  flex: 1;
+  margin-bottom: 16px;
+}
+
+.item-title {
+  font-weight: 600;
+  font-size: 16px;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+  text-decoration: none;
+  display: block;
+  line-height: 1.4;
+  /* Limit lines */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.item-title:hover {
+  color: var(--accent-color);
+}
+
+.item-meta {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.item-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.item-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  opacity: 0;
+  /* Hide by default */
+  transition: opacity 0.2s ease;
+}
+
+.item-card:hover .item-actions {
+  opacity: 1;
+}
+
+.btn-icon {
+  background: var(--surface-color);
+  color: var(--text-secondary);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-size: 14px;
+  transition: var(--transition);
+}
+
+.btn-icon:hover {
+  background: var(--primary-color);
+  color: white;
+  transform: scale(1.1);
+}
+
+.btn-icon.delete-btn:hover {
+  background: var(--error-color);
+}
+
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 80px;
+  color: var(--text-secondary);
+  font-size: 18px;
+  font-weight: 300;
+}
+
+/* Utilities */
+.hidden {
+  display: none !important;
+}
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.space-between {
+  justify-content: space-between;
+}
+
+.gap-sm {
+  gap: 8px;
+}
+
+.gap-md {
+  gap: 16px;
+}
+
+/* Tags */
+.tag {
+  display: inline-block;
+  background-color: var(--surface-color);
+  color: var(--text-secondary);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  margin-right: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Header Extras */
+.philosophy {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 4px 0 8px 0;
+  font-style: italic;
+  max-width: 600px;
+  line-height: 1.5;
+}
+
+.github-link {
+  font-size: 12px;
+  color: var(--accent-color);
+  text-decoration: none;
+  opacity: 0.8;
+  transition: var(--transition);
+}
+
+.github-link:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+/* Search Container */
+.search-container {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  align-items: center;
+}
+
+.search-container input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 14px;
+  transition: var(--transition);
+}
+
+.search-container input:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+}
+
+.search-container .btn-icon {
+  background: var(--surface-color);
+  color: var(--text-secondary);
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-size: 14px;
   transition: var(--transition);
   cursor: pointer;
   border: 1px solid var(--border-color);
@@ -627,4 +822,278 @@ input:focus {
   background: var(--primary-color);
   color: white;
   border-color: var(--primary-color);
+}
+
+/* Overdue Card Styling */
+.item-card.overdue {
+  border: 2px solid rgba(255, 149, 0, 0.3);
+  box-shadow: 0 0 0 4px rgba(255, 149, 0, 0.05), var(--shadow);
+}
+
+.item-card.overdue::before {
+  content: '⏰ 提醒已过期';
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #ff9500;
+  background: rgba(255, 149, 0, 0.1);
+  padding: 4px 8px;
+  border-radius: 4px;
+  z-index: 1;
+}
+
+/* Context Menu */
+.context-menu {
+  position: fixed;
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 4px 0;
+  z-index: 1000;
+  min-width: 160px;
+}
+
+.context-menu-item {
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-primary);
+  transition: var(--transition);
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.item-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  opacity: 0;
+  /* Hide by default */
+  transition: opacity 0.2s ease;
+}
+
+.item-card:hover .item-actions {
+  opacity: 1;
+}
+
+.btn-icon {
+  background: var(--surface-color);
+  color: var(--text-secondary);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-size: 14px;
+  transition: var(--transition);
+}
+
+.btn-icon:hover {
+  background: var(--primary-color);
+  color: white;
+  transform: scale(1.1);
+}
+
+.btn-icon.delete-btn:hover {
+  background: var(--error-color);
+}
+
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 80px;
+  color: var(--text-secondary);
+  font-size: 18px;
+  font-weight: 300;
+}
+
+/* Utilities */
+.hidden {
+  display: none !important;
+}
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.space-between {
+  justify-content: space-between;
+}
+
+.gap-sm {
+  gap: 8px;
+}
+
+.gap-md {
+  gap: 16px;
+}
+
+/* Tags */
+.tag {
+  display: inline-block;
+  background-color: var(--surface-color);
+  color: var(--text-secondary);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  margin-right: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Header Extras */
+.philosophy {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 4px 0 8px 0;
+  font-style: italic;
+  max-width: 600px;
+  line-height: 1.5;
+}
+
+.github-link {
+  font-size: 12px;
+  color: var(--accent-color);
+  text-decoration: none;
+  opacity: 0.8;
+  transition: var(--transition);
+}
+
+.github-link:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+/* Search Container */
+.search-container {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  align-items: center;
+}
+
+.search-container input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 14px;
+  transition: var(--transition);
+}
+
+.search-container input:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+}
+
+.search-container .btn-icon {
+  background: var(--surface-color);
+  color: var(--text-secondary);
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-size: 14px;
+  transition: var(--transition);
+  cursor: pointer;
+  border: 1px solid var(--border-color);
+}
+
+.search-container .btn-icon:hover {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+/* Overdue Card Styling */
+.item-card.overdue {
+  border: 2px solid rgba(255, 149, 0, 0.3);
+  box-shadow: 0 0 0 4px rgba(255, 149, 0, 0.05), var(--shadow);
+}
+
+.item-card.overdue::before {
+  content: '⏰ 提醒已过期';
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #ff9500;
+  background: rgba(255, 149, 0, 0.1);
+  padding: 4px 8px;
+  border-radius: 4px;
+  z-index: 1;
+}
+
+/* Context Menu */
+.context-menu {
+  position: fixed;
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 4px 0;
+  z-index: 1000;
+  min-width: 160px;
+}
+
+.context-menu-item {
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-primary);
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.context-menu-item:hover {
+  background: var(--surface-color);
+}
+
+.context-menu-item.danger {
+  color: var(--error-color);
+}
+
+.context-menu-item.danger:hover {
+  background: rgba(255, 59, 48, 0.1);
+}
+
+/* Dashboard Metadata Styles */
+.meta-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.meta-sub {
+  font-size: 11px;
+  color: #8E8E93;
+  margin-left: 2px;
+}
+
+.delay-badge {
+  background-color: #FF9500;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
 }

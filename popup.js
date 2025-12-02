@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const customTimeContainer = document.getElementById('custom-time-container');
     const customTimeInput = document.getElementById('custom-time');
     const tagsInput = document.getElementById('tags-input');
+    const secondReminderIntervalSelect = document.getElementById('second-reminder-interval');
 
     let currentTab = null;
     let selectedReminder = null;
@@ -31,6 +32,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Load settings
+    chrome.storage.sync.get(['settings'], (result) => {
+        if (result.settings) {
+            // Support both new and old keys for backward compatibility
+            secondReminderIntervalSelect.value = result.settings.repeatReminderInterval || result.settings.secondReminderInterval || 60;
+        }
+    });
+
     // Handle reminder selection
     reminderBtns.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -43,6 +52,16 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 customTimeContainer.classList.add('hidden');
             }
+        });
+    });
+
+    // Handle settings change
+    secondReminderIntervalSelect.addEventListener('change', () => {
+        const settings = {
+            repeatReminderInterval: parseInt(secondReminderIntervalSelect.value)
+        };
+        chrome.storage.sync.set({ settings }, () => {
+            console.log('⚙️ Settings saved:', settings);
         });
     });
 
@@ -60,7 +79,11 @@ document.addEventListener('DOMContentLoaded', () => {
             savedAt: Date.now(),
             read: false,
             reminder: null,
-            tags: tags
+            tags: tags,
+            secondReminder: false,
+            permanentlyIgnored: false,
+            lastNotificationTime: null,
+            originalReminder: null
         };
 
         let reminderTime = null;
@@ -89,6 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (reminderTime) {
             item.reminder = reminderTime;
+            item.originalReminder = reminderTime;
             const alarmName = `reminder-${item.url}`;
             chrome.alarms.create(alarmName, { when: reminderTime }, () => {
                 if (chrome.runtime.lastError) {

@@ -7,16 +7,53 @@ chrome.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name.startsWith('reminder-')) {
         const url = alarm.name.replace('reminder-', '');
 
-        // Retrieve the item to get the title
-        chrome.storage.sync.get([url], (result) => {
+        // Retrieve item and settings to handle notification and scheduling
+        chrome.storage.sync.get(['settings', url], (result) => {
             const item = result[url];
             if (item) {
+                // Check if permanently ignored
+                if (item.permanentlyIgnored) {
+                    console.log('⏭️ Skipping notification for permanently ignored item:', item.title);
+                    return;
+                }
+
                 console.log('📬 Showing notification for:', item.title);
                 showNotification(url, item.title);
+
+                // --- Optimistic Scheduling ---
+                // Immediately schedule the NEXT recurring reminder.
+                // If the user clicks "Open" or "Snooze", we will overwrite/cancel this.
+
+                const settings = result.settings || {};
+                const repeatInterval = settings.repeatReminderInterval || settings.secondReminderInterval || 60; // Default 60 mins
+                const reminderCount = item.reminderCount || 0;
+
+                if (reminderCount < 10) {
+                    const nextReminderTime = Date.now() + repeatInterval * 60 * 1000;
+
+                    console.log(`🔄 Optimistically scheduling next reminder (${reminderCount + 1}/10) for:`, new Date(nextReminderTime).toLocaleString('zh-CN'));
+
+                    chrome.alarms.create(alarm.name, { when: nextReminderTime });
+
+                    // Update state
+                    item.reminder = nextReminderTime;
+                    item.reminderCount = reminderCount + 1;
+                    item.lastNotificationTime = Date.now();
+
+                    chrome.storage.sync.set({ [url]: item });
+                } else {
+                    console.log('🛑 Max reminder count reached (10), no further auto-reminders.');
+                }
+
             } else {
                 console.warn('⚠️ Item not found in storage for URL:', url);
             }
         });
+    } else if (alarm.name.startsWith('dismiss-')) {
+        // Handle auto-dismiss alarm
+        const url = alarm.name.replace('dismiss-', '');
+        console.log('⏰ Auto-dismissing notification for:', url);
+        chrome.notifications.clear(url);
     }
 });
 
@@ -34,56 +71,94 @@ function showNotification(url, title) {
             console.error('❌ Notification creation failed:', chrome.runtime.lastError);
         } else {
             console.log('✅ Notification created successfully:', notificationId);
+
+            // Create auto-dismiss alarm (30 seconds)
+            const dismissTime = Date.now() + 30000; // 30 seconds
+            chrome.alarms.create(`dismiss-${url}`, { when: dismissTime });
         }
     });
 }
 
-// Handle notification clicks
+// Handle notification clicks (Open Page)
 chrome.notifications.onClicked.addListener((notificationId) => {
-    // notificationId is the URL
+    console.log('🖱️ Notification clicked (Open Page):', notificationId);
+
+    // 1. Clear Dismiss Alarm
+    chrome.alarms.clear(`dismiss-${notificationId}`);
+
+    // 2. Clear the Optimistically Scheduled Recurring Reminder
+    // (Since user handled it, we don't need to remind again)
+    chrome.alarms.clear(`reminder-${notificationId}`);
+
+    // 3. Open Page
     chrome.tabs.create({ url: notificationId });
     chrome.notifications.clear(notificationId);
+
+    // 4. Reset Reminder Count in Storage (Optional, but good for future)
+    chrome.storage.sync.get([notificationId], (result) => {
+        const item = result[notificationId];
+        if (item) {
+            item.reminderCount = 0;
+            item.read = true; // Mark as read since opened
+            item.readAt = Date.now(); // Track when actually read
+            item.reminder = null; // Clear reminder time
+            chrome.storage.sync.set({ [notificationId]: item });
+        }
+    });
 });
 
 // Handle notification button clicks
 chrome.notifications.onButtonClicked.addListener((notificationId, buttonIndex) => {
+    // Clear Dismiss Alarm
+    chrome.alarms.clear(`dismiss-${notificationId}`);
+
     if (buttonIndex === 0) {
-        // Open Page
+        // --- Open Page ---
+        console.log('🖱️ "Open Page" button clicked:', notificationId);
+
+        // Clear Recurring Reminder
+        chrome.alarms.clear(`reminder-${notificationId}`);
+
         chrome.tabs.create({ url: notificationId });
         chrome.notifications.clear(notificationId);
+
+        // Update Storage
+        chrome.storage.sync.get([notificationId], (result) => {
+            const item = result[notificationId];
+            if (item) {
+                item.reminderCount = 0;
+                item.read = true;
+                item.readAt = Date.now();
+                item.reminder = null;
+                chrome.storage.sync.set({ [notificationId]: item });
+            }
+        });
+
     } else if (buttonIndex === 1) {
-        // Snooze 1h
+        // --- Snooze 1h ---
         const snoozeTime = Date.now() + 60 * 60 * 1000;
         const alarmName = `reminder-${notificationId}`;
 
         console.log('😴 Snoozing notification for 1 hour');
-        console.log('   New alarm time:', new Date(snoozeTime).toLocaleString('zh-CN'));
 
-        // Create new alarm
-        chrome.alarms.create(alarmName, { when: snoozeTime }, () => {
-            if (chrome.runtime.lastError) {
-                console.error('❌ Snooze alarm creation failed:', chrome.runtime.lastError);
-            } else {
-                console.log('✅ Snooze alarm created');
-
-                // Update storage with new reminder time
-                chrome.storage.sync.get([notificationId], (result) => {
-                    const item = result[notificationId];
-                    if (item) {
-                        item.reminder = snoozeTime;
-                        chrome.storage.sync.set({ [notificationId]: item }, () => {
-                            console.log('💾 Storage updated with new reminder time');
-                        });
-                    }
-                });
-            }
-        });
+        // Overwrite the Optimistically Scheduled alarm with the Snooze alarm
+        chrome.alarms.create(alarmName, { when: snoozeTime });
 
         chrome.notifications.clear(notificationId);
+
+        // Update Storage
+        chrome.storage.sync.get([notificationId], (result) => {
+            const item = result[notificationId];
+            if (item) {
+                item.reminder = snoozeTime;
+                item.reminderCount = 0; // Reset count
+                chrome.storage.sync.set({ [notificationId]: item });
+            }
+        });
     }
 });
 
-// Context menu to save page (Optional but good for UX)
+// Context menu to save page
 chrome.runtime.onInstalled.addListener(() => {
     chrome.contextMenus.create({
         id: "save-page",
@@ -100,7 +175,11 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
             savedAt: Date.now(),
             read: false,
             reminder: null,
-            tags: []
+            tags: [],
+            reminderCount: 0,
+            permanentlyIgnored: false,
+            lastNotificationTime: null,
+            originalReminder: null
         };
         chrome.storage.sync.set({ [tab.url]: item }, () => {
             console.log('Page saved via context menu');
@@ -115,6 +194,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
             const item = result[tab.url];
             if (item && !item.read) {
                 item.read = true;
+                item.readAt = Date.now();
                 // Clear alarm if exists
                 if (item.reminder) {
                     chrome.alarms.clear(`reminder-${tab.url}`);

@@ -104,6 +104,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 card.classList.add('overdue');
             }
 
+            // Add ignored class if permanently ignored
+            if (item.permanentlyIgnored) {
+                card.classList.add('ignored');
+            }
+
             // Store URL for context menu
             card.dataset.url = item.url;
 

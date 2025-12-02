@@ -1097,3 +1097,24 @@ input:focus {
   font-weight: 600;
   white-space: nowrap;
 }
+
+/* Ignored Item Styling */
+.item-card.ignored {
+  border: 2px solid rgba(142, 142, 147, 0.3);
+  box-shadow: 0 0 0 4px rgba(142, 142, 147, 0.05), var(--shadow);
+  opacity: 0.7;
+}
+
+.item-card.ignored::before {
+  content: '已忽略提醒';
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #8E8E93;
+  background: rgba(142, 142, 147, 0.1);
+  padding: 4px 8px;
+  border-radius: 4px;
+  z-index: 1;
+}

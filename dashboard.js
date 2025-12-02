@@ -27,6 +27,18 @@ document.addEventListener('DOMContentLoaded', () => {
             // Save to localStorage
             localStorage.setItem('reado_active_tab', currentTab);
 
+            // Toggle views
+            const searchView = document.getElementById('search-view');
+            const insightsView = document.getElementById('insights-view');
+
+            if (currentTab === 'insights') {
+                searchView.classList.add('hidden');
+                insightsView.classList.remove('hidden');
+            } else {
+                searchView.classList.remove('hidden');
+                insightsView.classList.add('hidden');
+            }
+
             loadItems();
         });
     });
@@ -53,6 +65,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function loadItems() {
         chrome.storage.sync.get(null, (items) => {
             const allItems = Object.values(items).filter(item => item.url && item.title);
+
+            if (currentTab === 'insights') {
+                renderInsights(allItems);
+                return;
+            }
+
             let filteredItems = allItems.filter(item => {
                 if (currentTab === 'unread') return !item.read;
                 return item.read;
@@ -190,9 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const faviconUrl = chrome.runtime.getURL(`_favicon/?pageUrl=${encodeURIComponent(item.url)}&size=32`);
 
             card.innerHTML = `
-        <div class="card-icon">
-            <img src="${faviconUrl}" alt="Icon" onerror="this.src='assets/icon_jobs.svg'">
-        </div>
+
         <div class="item-info">
           <a href="${item.url}" target="_blank" class="item-title">${item.title}</a>
           <div class="item-meta">
@@ -253,6 +269,157 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Insights Logic
+    function renderInsights(items) {
+        const insightsView = document.getElementById('insights-view');
+
+        // Calculate metrics
+        const totalCount = items.length;
+        const readCount = items.filter(i => i.read).length;
+        const completionRate = totalCount > 0 ? Math.round((readCount / totalCount) * 100) : 0;
+
+        // Calculate average delay (for read items)
+        let totalDelayMs = 0;
+        let delayCount = 0;
+        items.filter(i => i.read).forEach(item => {
+            const readTime = item.readAt || item.savedAt; // Fallback to savedAt if readAt missing
+            const saveTime = item.savedAt;
+            if (readTime > saveTime) {
+                totalDelayMs += (readTime - saveTime);
+                delayCount++;
+            }
+        });
+
+        const avgDelayMs = delayCount > 0 ? totalDelayMs / delayCount : 0;
+        const avgDelayDays = (avgDelayMs / (1000 * 60 * 60 * 24)).toFixed(1);
+
+        // Calculate weekly trend
+        const last7Days = [];
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            last7Days.push(d.toLocaleDateString('zh-CN'));
+        }
+
+        const trendData = last7Days.map(dateStr => {
+            return items.filter(i => i.read && (i.readAt ? new Date(i.readAt) : new Date(i.savedAt)).toLocaleDateString('zh-CN') === dateStr).length;
+        });
+
+        const maxTrend = Math.max(...trendData, 1); // Avoid division by zero
+
+        // Calculate Curiosity (Top Tags)
+        const tagCounts = {};
+        items.filter(i => i.read).forEach(item => {
+            if (item.tags && item.tags.length > 0) {
+                item.tags.forEach(tag => {
+                    tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+                });
+            }
+        });
+        const sortedTags = Object.entries(tagCounts)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 3)
+            .map(entry => entry[0]);
+
+        // Calculate Prime Time (Reading Time Distribution)
+        const timeSlots = { morning: 0, afternoon: 0, evening: 0, night: 0 };
+        items.filter(i => i.read && i.readAt).forEach(item => {
+            const hour = new Date(item.readAt).getHours();
+            if (hour >= 5 && hour < 12) timeSlots.morning++;
+            else if (hour >= 12 && hour < 18) timeSlots.afternoon++;
+            else if (hour >= 18 && hour < 23) timeSlots.evening++;
+            else timeSlots.night++;
+        });
+
+        const primeTime = Object.entries(timeSlots).sort((a, b) => b[1] - a[1])[0][0];
+        const primeTimeLabels = {
+            morning: { icon: '🌅', label: '清晨' },
+            afternoon: { icon: '☀️', label: '午后' },
+            evening: { icon: '🌆', label: '傍晚' },
+            night: { icon: '🌙', label: '深夜' }
+        };
+        const primeTimeData = primeTimeLabels[primeTime];
+
+        // Render HTML
+        insightsView.innerHTML = `
+            <div class="insights-grid">
+                <!-- The Doer Ring -->
+                <div class="insight-card">
+                    <h3>执行力</h3>
+                    <div class="ring-container">
+                        <svg viewBox="0 0 36 36" class="circular-chart">
+                            <path class="circle-bg"
+                                d="M18 2.0845
+                                a 15.9155 15.9155 0 0 1 0 31.831
+                                a 15.9155 15.9155 0 0 1 0 -31.831"
+                            />
+                            <path class="circle"
+                                stroke-dasharray="${completionRate}, 100"
+                                d="M18 2.0845
+                                a 15.9155 15.9155 0 0 1 0 31.831
+                                a 15.9155 15.9155 0 0 1 0 -31.831"
+                            />
+                            <text x="18" y="20.35" class="percentage">${completionRate}%</text>
+                        </svg>
+                        <p class="insight-label">已读率</p>
+                    </div>
+                </div>
+
+                <!-- The Procrastination Gap -->
+                <div class="insight-card">
+                    <h3>行动力</h3>
+                    <div class="stat-container">
+                        <div class="big-number">${avgDelayDays}</div>
+                        <div class="unit">天</div>
+                        <p class="insight-label">平均阅读延迟</p>
+                    </div>
+                </div>
+
+                <!-- The Curiosity -->
+                <div class="insight-card">
+                    <h3>好奇心</h3>
+                    <div class="tags-container">
+                        ${sortedTags.length > 0
+                ? sortedTags.map(tag => `<span class="insight-tag">${tag}</span>`).join('')
+                : '<span class="empty-tag">暂无数据</span>'}
+                    </div>
+                    <p class="insight-label">最常阅读领域</p>
+                </div>
+
+                <!-- The Prime Time -->
+                <div class="insight-card">
+                    <h3>黄金时间</h3>
+                    <div class="stat-container">
+                        <div class="big-icon">${primeTimeData.icon}</div>
+                        <div class="unit">${primeTimeData.label}</div>
+                        <p class="insight-label">深度阅读时段</p>
+                    </div>
+                </div>
+
+                <!-- The Rhythm -->
+                <div class="insight-card wide">
+                    <h3>阅读心流</h3>
+                    <div class="chart-container">
+                        ${trendData.map((count, index) => `
+                            <div class="bar-group">
+                                <div class="bar" style="height: ${(count / maxTrend) * 100}%"></div>
+                                <div class="bar-label">${['日', '一', '二', '三', '四', '五', '六'][new Date(last7Days[index]).getDay()]}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
     // Initial load
     loadItems();
+
+    // Initial view state
+    const searchView = document.getElementById('search-view');
+    const insightsView = document.getElementById('insights-view');
+    if (currentTab === 'insights') {
+        searchView.classList.add('hidden');
+        insightsView.classList.remove('hidden');
+    }
 });

@@ -55,6 +55,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Set default selection to "稍后 (1小时)"
+    const laterBtn = document.querySelector('.reminder-btn[data-time="later"]');
+    if (laterBtn) {
+        laterBtn.classList.add('active');
+        selectedReminder = 'later';
+    }
+
     // Handle settings change
     secondReminderIntervalSelect.addEventListener('change', () => {
         const settings = {
@@ -87,25 +94,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let reminderTime = null;
 
-        if (selectedReminder) {
+        // Default to 1 hour later if no reminder selected
+        if (!selectedReminder) {
             const now = new Date();
-            if (selectedReminder === 'later') {
-                reminderTime = now.getTime() + 60 * 60 * 1000;
-            } else if (selectedReminder === 'tonight') {
-                now.setHours(20, 0, 0, 0);
-                if (now.getTime() <= Date.now()) {
-                    now.setDate(now.getDate() + 1); // If past 8pm, set for tomorrow 8pm
-                }
-                reminderTime = now.getTime();
-            } else if (selectedReminder === 'tomorrow') {
-                now.setDate(now.getDate() + 1);
-                now.setHours(9, 0, 0, 0);
-                reminderTime = now.getTime();
-            } else if (selectedReminder === 'custom') {
-                const customVal = customTimeInput.value;
-                if (customVal) {
-                    reminderTime = new Date(customVal).getTime();
-                }
+            reminderTime = now.getTime() + 60 * 60 * 1000; // 1 hour later
+        } else if (selectedReminder === 'later') {
+            const now = new Date();
+            reminderTime = now.getTime() + 60 * 60 * 1000;
+        } else if (selectedReminder === 'tonight') {
+            const now = new Date();
+            now.setHours(20, 0, 0, 0);
+            if (now.getTime() <= Date.now()) {
+                now.setDate(now.getDate() + 1); // If past 8pm, set for tomorrow 8pm
+            }
+            reminderTime = now.getTime();
+        } else if (selectedReminder === 'tomorrow') {
+            const now = new Date();
+            now.setDate(now.getDate() + 1);
+            now.setHours(9, 0, 0, 0);
+            reminderTime = now.getTime();
+        } else if (selectedReminder === 'custom') {
+            const customVal = customTimeInput.value;
+            if (customVal) {
+                reminderTime = new Date(customVal).getTime();
             }
         }
 
@@ -121,14 +132,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.log('   Scheduled for:', new Date(reminderTime).toLocaleString('zh-CN'));
                     console.log('   Time until alarm:', Math.round((reminderTime - Date.now()) / 1000 / 60), 'minutes');
 
-                    // Verify alarm was created
-                    chrome.alarms.get(alarmName, (alarm) => {
-                        if (alarm) {
-                            console.log('✅ Alarm verified in system:', alarm);
-                        } else {
-                            console.error('⚠️ Alarm not found after creation!');
-                        }
-                    });
+                    // Verify alarm was created (with small delay to ensure it's in the system)
+                    setTimeout(() => {
+                        chrome.alarms.get(alarmName, (alarm) => {
+                            if (alarm) {
+                                console.log('✅ Alarm verified in system:', alarm);
+                            } else {
+                                console.error('⚠️ Alarm not found after creation!');
+                            }
+                        });
+                    }, 100); // 100ms delay
                 }
             });
         }

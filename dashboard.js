@@ -422,4 +422,93 @@ document.addEventListener('DOMContentLoaded', () => {
         searchView.classList.add('hidden');
         insightsView.classList.remove('hidden');
     }
+
+    // ===== Export/Import Functionality =====
+    // Create export/import buttons dynamically
+    const header = document.querySelector('.header');
+    const headerActions = document.createElement('div');
+    headerActions.style.cssText = 'display: flex; gap: 8px; margin-left: auto;';
+    headerActions.innerHTML = `
+        <button id="export-btn" class="secondary" title="导出所有数据" style="padding: 8px 16px; font-size: 13px;">📥 导出</button>
+        <button id="import-btn" class="secondary" title="导入备份数据" style="padding: 8px 16px; font-size: 13px;">📤 导入</button>
+        <input type="file" id="import-file" accept=".json" style="display: none;">
+    `;
+    header.appendChild(headerActions);
+
+    // Export functionality
+    document.getElementById('export-btn').addEventListener('click', () => {
+        chrome.storage.sync.get(null, (allData) => {
+            const exportData = {
+                version: '1.0',
+                exportDate: new Date().toISOString(),
+                data: allData
+            };
+
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `reado-backup-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            console.log('✅ Data exported successfully');
+            alert('数据导出成功！');
+        });
+    });
+
+    // Import functionality
+    document.getElementById('import-btn').addEventListener('click', () => {
+        document.getElementById('import-file').click();
+    });
+
+    document.getElementById('import-file').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const importData = JSON.parse(event.target.result);
+
+                if (!importData.data) {
+                    throw new Error('Invalid backup file format');
+                }
+
+                const itemCount = Object.keys(importData.data).filter(key => {
+                    const item = importData.data[key];
+                    return item && item.url && item.title;
+                }).length;
+
+                if (confirm(`确定要导入 ${itemCount} 条记录吗？\n\n✅ 新数据将与现有数据合并`)) {
+                    // Get existing data first
+                    chrome.storage.sync.get(null, (existingData) => {
+                        // Merge: existing data + imported data (imported data takes precedence for duplicates)
+                        const mergedData = { ...existingData, ...importData.data };
+
+                        chrome.storage.sync.set(mergedData, () => {
+                            const newItemsCount = Object.keys(importData.data).filter(key => {
+                                return !existingData[key] && importData.data[key].url;
+                            }).length;
+
+                            console.log('✅ Data imported and merged successfully');
+                            alert(`数据导入成功！\n新增 ${newItemsCount} 条记录\n页面将刷新。`);
+                            location.reload();
+                        });
+                    });
+                }
+            } catch (error) {
+                console.error('❌ Import failed:', error);
+                alert('导入失败：文件格式不正确');
+            }
+        };
+        reader.readAsText(file);
+
+        // Reset file input
+        e.target.value = '';
+    });
 });

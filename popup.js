@@ -121,7 +121,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Fallback to 1 hour if custom time not provided
                 const now = new Date();
                 reminderTime = now.getTime() + 60 * 60 * 1000;
-                console.warn('⚠️ Custom time not provided, using default 1 hour');
             }
         }
 

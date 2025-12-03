@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Reado - Read Later & Reminders",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "让 Reado 帮你对干扰说'No'，对深度阅读说'Yes'。",
   "permissions": [
     "storage",
